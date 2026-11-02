@@ -193,9 +193,16 @@ it off.
 A sailing target that stays in view. Vanilla's map ping (middle click) shows "Quandru: ping" on the map and in the
 world for a few seconds, then it's gone. A waypoint is the same idea but **persistent until someone removes it**.
 
-- **A waypoint pin type.** Labelled with who set it, e.g. "Quandru's waypoint". How you place one is open, to
-  work out from what's possible when we build it (ideas: a modifier on middle click, an entry in the pin icon row,
-  a right-click menu).
+- **A waypoint pin type.** Labelled with who set it, e.g. "Quandru's waypoint".
+- **Placing one (proposed):** pick the waypoint icon in the map's pin type selector, then double-click the map, the
+  same way as any other pin. One change from normal pins: a waypoint skips the name box, so laying out a route is
+  just a string of double-clicks. It's numbered automatically ("Quandru's waypoint 3"). Pick another icon to go back
+  to normal pins.
+- **Routes.** Waypoints you place in a row form a route, numbered in the order placed.
+- **Reached means removed.** When you come within a set distance of a waypoint (a setting, to tune for boat speed),
+  it disappears. Sail from one to the next and the route clears itself behind you.
+- **Distance on screen.** Each waypoint's marker in the 3D view shows its distance, and the next one on your route
+  (or the nearest, if you're not following a route) is highlighted, so you can always turn towards it.
 - **As many as you like.** No per-player limit: they manage themselves because they expire.
 - **Short-lived.** Waypoints are only for the journey in hand, so they expire: all are cleared on a server restart,
   and each also expires after a set time (1 hour to start). Both are settings.
@@ -243,6 +250,8 @@ Open, to come back to when we build:
 - **Minimap look and feel:** size, round or square, north-up or rotating, zoom steps.
 - **Auto-pin list:** what gets pinned automatically.
 - **Radius defaults** for release.
-- **How waypoints and renames are triggered** from the map.
+- **How renames are triggered** from the map.
+- **Shared waypoints when reached:** with sharing on, does reaching a waypoint remove it for everyone, or only for
+  the player who reached it?
 
 Everything else in the earlier list has been decided (see the top of this doc).
