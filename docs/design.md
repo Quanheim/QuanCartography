@@ -13,9 +13,11 @@ Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
   player's hidden icons kept through a relog.
 - **The vanilla cartography table is ignored.** It still works for anyone who uses it, but we don't hook into it or
   rely on it. Everything goes through the server.
-- **Combining starts at 15 m** (ServerSideMap's figure), and the **first pin's name wins**. Vanilla has no rename,
-  so anyone who wants a different name deletes and re-adds the pin. Both are tunable.
-- **Death markers are shared**, so others can help with corpse runs.
+- **Combining starts at 15 m** (ServerSideMap's figure), and the **first pin's name wins**. Both are tunable.
+- **Pins can be renamed**, which vanilla can't do (see Renaming pins).
+- **Death markers are shared**, so others can help with corpse runs, and are **tied to the tombstone** (see Death
+  markers).
+- **The minimap follows the big map's filters**: an icon hidden on one is hidden on the other.
 - **Players keep vanilla's "hide my position" option**, but a server setting can force positions on, and it
   **defaults to forced on**: everyone's position is shared.
 - **Sailing waypoints** are in scope (see Waypoints).
@@ -92,13 +94,11 @@ below the pin stays saved on the creator's PC only, so the creator has no sign a
   them.
 - Players with the mod installed are always in. There's no per-player opt-out.
 
-**Anyone can change any pin.** Every player can tick or delete any pin, whoever made it (vanilla has no rename: to
-"rename", delete and re-add). The
-server logs each change with who made it, and a deleted pin goes to a bin for a set time (for example 7 days) so an
+**Anyone can change any pin.** Every player can rename, tick or delete any pin, whoever made it. The server logs each change with who made it, and a deleted pin goes to a bin for a set time (for example 7 days) so an
 admin can restore it.
 
 **Changes are requests with a receipt.**
-- Add, tick and delete each go to the server as a request. The server applies it, logs it, and
+- Add, rename, tick and delete each go to the server as a request. The server applies it, logs it, and
   broadcasts the change to everyone online within a second.
 - The client keeps every request it hasn't had a receipt for and resends it, including after a disconnect or on next
   login. A pin can't silently fail to go up.
@@ -150,6 +150,38 @@ Whatever we add must behave like BetterMap does today:
   they see. (BetterMap lets each player choose what gets pinned, which only works because its pins are private.)
 - Creature, tame and vehicle icons, kept death markers, icon scale and smooth zoom carry over too.
 
+## Renaming pins
+
+Vanilla can name a pin only when it's placed. We add a rename: a gesture on an existing pin (for example
+double-click, or a modifier with click; to settle in design) opens vanilla's own pin name box with the current name
+filled in. Confirming sends a rename request to the server by the pin's ID, and everyone sees the new name.
+
+## Death markers
+
+- **Shared** like every other pin.
+- **Cleared when the tombstone goes.** When a death creates a tombstone, the marker's pin ID is saved on the
+  tombstone itself (saved data on the tombstone, which survives restarts, unlike an object ID). When the tombstone is
+  emptied, by "take all" or item by item, the game removes it (`TombStone.UpdateDespawn`), and we remove its marker
+  at the same moment. It works whoever empties it and wherever it has floated or been moved to.
+- **Self-repairing:** the server also checks now and then for death markers whose tombstone no longer exists (for
+  example removed by an admin or another mod) and clears them.
+- **Deaths with no tombstone.** The game only makes a tombstone if you were carrying something and the world's
+  "keep inventory" option is off (`Player.CreateTombStone`), but it adds a death marker every time
+  (`Player.OnDeath`). A server setting, **Death markers only with a tombstone**, skips the marker when there's no
+  tombstone. Off, it behaves like vanilla and the marker stays until someone deletes it.
+
+## Minimap
+
+- **Same filters as the big map.** Hiding an icon type on the map's legend hides it on the minimap too, and the
+  other way round, kept through a relog. Each player sees the same amount of clutter in both places.
+- **What vanilla already has** (from `Minimap`): the minimap shows fog of war (the same fog texture as the big map),
+  a wind direction arrow, and it already zooms with the map zoom keys, between tight limits. Fog rarely shows simply
+  because the minimap can't zoom out past the area you've just uncovered.
+- **Our additions:** a wider zoom range, so fog and more of the surroundings come into view, with a scale readout in
+  fixed steps (World of Warcraft style, for example 32 m, 64 m, 128 m). Wind stays.
+- Look-and-feel options (size, round or square, north-up or rotating) are an open decision: we'll look at what's
+  possible and judge how cluttered it gets.
+
 ## Player positions
 
 Vanilla's "hide my position" toggle stays, but a server setting, **Force position sharing**, overrides it. It
@@ -161,8 +193,12 @@ it off.
 A sailing target that stays in view. Vanilla's map ping (middle click) shows "Quandru: ping" on the map and in the
 world for a few seconds, then it's gone. A waypoint is the same idea but **persistent until someone removes it**.
 
-- **A waypoint pin type.** Placed from the map like a pin (a modifier on middle click, an entry in the pin icon
-  row, or a right-click menu: to settle in design), labelled with who set it, e.g. "Quandru's waypoint".
+- **A waypoint pin type.** Labelled with who set it, e.g. "Quandru's waypoint". How you place one is open, to
+  work out from what's possible when we build it (ideas: a modifier on middle click, an entry in the pin icon row,
+  a right-click menu).
+- **As many as you like.** No per-player limit: they manage themselves because they expire.
+- **Short-lived.** Waypoints are only for the journey in hand, so they expire: all are cleared on a server restart,
+  and each also expires after a set time (1 hour to start). Both are settings.
 - **Shown in the 3D view, not just on the map:** a marker over the spot with its name and distance, which slides to
   the edge of the screen with an arrow when the spot is behind you or off screen, so you can steer by it.
 - **Local by default; sharing is a server option.** Shared waypoints show for everyone. Anyone can delete one, and
@@ -170,8 +206,6 @@ world for a few seconds, then it's gone. A waypoint is the same idea but **persi
 - Each player can switch the in-view markers off.
 - **Is it doable?** Yes. Projecting a world position onto the screen and clamping it to the edges is a standard
   technique, and vanilla already draws ping text at a world position. No existing mod we know of does it.
-- Open details: one waypoint per player (setting a new one replaces your last) or several, and whether a waypoint
-  expires after a long time unused.
 
 ## Vanilla cartography table
 
@@ -203,11 +237,12 @@ can keep their own copy before the switch (handled separately). Also back up the
 
 ## Where I'd like your input
 
-Open, to come back to: **radar and minimap features.** What it shows (creatures, players, boats, carts, your tames,
-which overlaps QuanCompanions D4.5) and any range limits. Possible look-and-feel options, if any appeal: minimap size
-and zoom, a round or square minimap, north-up versus rotating with you.
-
-Also open: **auto-pin list** (what gets pinned automatically), **radius defaults** for release, and the waypoint
-details above.
+Open, to come back to when we build:
+- **Radar:** what it shows (creatures, players, boats, carts, your tames, which overlaps QuanCompanions D4.5) and any
+  range limits.
+- **Minimap look and feel:** size, round or square, north-up or rotating, zoom steps.
+- **Auto-pin list:** what gets pinned automatically.
+- **Radius defaults** for release.
+- **How waypoints and renames are triggered** from the map.
 
 Everything else in the earlier list has been decided (see the top of this doc).
