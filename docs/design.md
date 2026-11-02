@@ -20,7 +20,7 @@ Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
 - **The minimap follows the big map's filters**: an icon hidden on one is hidden on the other.
 - **Players keep vanilla's "hide my position" option**, but a server setting can force positions on, and it
   **defaults to forced on**: everyone's position is shared.
-- **Sailing waypoints** are in scope (see Waypoints).
+- **Sailing waypoints:** shared and owned by whoever placed them; everyone sees them all on the map, but the 3D view shows only each player's nearest one (see Waypoints).
 - **Radar and minimap features are still open.**
 
 ## Purpose
@@ -191,26 +191,27 @@ it off.
 ## Waypoints
 
 A sailing target that stays in view. Vanilla's map ping (middle click) shows "Quandru: ping" on the map and in the
-world for a few seconds, then it's gone. A waypoint is the same idea but **persistent until someone removes it**.
+world for a few seconds, then it's gone. A waypoint is the same idea but **persistent until it's reached or expires**.
 
-- **A waypoint pin type.** Labelled with who set it, e.g. "Quandru's waypoint".
-- **Placing one (proposed):** pick the waypoint icon in the map's pin type selector, then double-click the map, the
-  same way as any other pin. One change from normal pins: a waypoint skips the name box, so laying out a route is
-  just a string of double-clicks. It's numbered automatically ("Quandru's waypoint 3"). Pick another icon to go back
-  to normal pins.
-- **Routes.** Waypoints you place in a row form a route, numbered in the order placed.
-- **Reached means removed.** When you come within a set distance of a waypoint (a setting, to tune for boat speed),
-  it disappears. Sail from one to the next and the route clears itself behind you.
-- **Distance on screen.** Each waypoint's marker in the 3D view shows its distance, and the next one on your route
-  (or the nearest, if you're not following a route) is highlighted, so you can always turn towards it.
-- **As many as you like.** No per-player limit: they manage themselves because they expire.
-- **Short-lived.** Waypoints are only for the journey in hand, so they expire: all are cleared on a server restart,
-  and each also expires after a set time (1 hour to start). Both are settings.
-- **Shown in the 3D view, not just on the map:** a marker over the spot with its name and distance, which slides to
-  the edge of the screen with an arrow when the spot is behind you or off screen, so you can steer by it.
-- **Local by default; sharing is a server option.** Shared waypoints show for everyone. Anyone can delete one, and
-  people will clear them as they finish with them, since nobody wants a cluttered view.
-- Each player can switch the in-view markers off.
+**Agreed (2 Nov 2026):**
+- **Shared, owned by whoever placed it.** Every waypoint goes to the server like any pin, with its owner.
+- **No naming step.** Placing one skips vanilla's name box. Every waypoint is named "<player>'s waypoint", for
+  example "Quan's waypoint". Duplicate names are fine.
+- **Placing:** pick the waypoint icon in the map's pin type selector, then double-click the map, as for any pin. A
+  route is a string of double-clicks. Pick another icon to go back to normal pins.
+- **On the map, everyone sees everything:** all waypoints from all players, so routes can be charted and seen.
+- **In the 3D view, only the nearest waypoint of each owner shows.** If Nige and I each have ten out, I see one of
+  mine and one of his: whichever of his is nearest to me, which needn't be the one he sees. His last one if his route
+  ends near me, a middle one if I cross it. Each marker shows the waypoint's full name and its distance, and slides to
+  the edge of the screen with an arrow when it's behind you or off screen. With one marker per person at most, nobody's
+  view gets cluttered.
+- **Reaching your own waypoint removes it.** When you come within a set distance of one of **your** waypoints (a
+  setting, to tune for boat speed), it disappears, and your next nearest one takes its place in the 3D view. Sail a
+  route and it clears itself behind you. Passing someone else's waypoint doesn't remove it.
+- **As many as you like.** No limit: they manage themselves because they clear when reached and expire.
+- **Short-lived.** All waypoints are cleared on a server restart, and each also expires after a set time (1 hour to
+  start). Both are settings. Anyone can still delete one from the map, as with any pin.
+- Each player can switch the 3D markers off.
 - **Is it doable?** Yes. Projecting a world position onto the screen and clamping it to the edges is a standard
   technique, and vanilla already draws ping text at a world position. No existing mod we know of does it.
 
@@ -251,7 +252,5 @@ Open, to come back to when we build:
 - **Auto-pin list:** what gets pinned automatically.
 - **Radius defaults** for release.
 - **How renames are triggered** from the map.
-- **Shared waypoints when reached:** with sharing on, does reaching a waypoint remove it for everyone, or only for
-  the player who reached it?
 
 Everything else in the earlier list has been decided (see the top of this doc).
