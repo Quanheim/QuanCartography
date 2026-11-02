@@ -13,6 +13,12 @@ Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
   player's hidden icons kept through a relog.
 - **The vanilla cartography table is ignored.** It still works for anyone who uses it, but we don't hook into it or
   rely on it. Everything goes through the server.
+- **Combining starts at 15 m** (ServerSideMap's figure), and the **first pin's name wins**. Vanilla has no rename,
+  so anyone who wants a different name deletes and re-adds the pin. Both are tunable.
+- **Death markers are shared**, so others can help with corpse runs.
+- **Players keep vanilla's "hide my position" option**, but a server setting can force positions on, and it
+  **defaults to forced on**: everyone's position is shared.
+- **Sailing waypoints** are in scope (see Waypoints).
 - **Radar and minimap features are still open.**
 
 ## Purpose
@@ -56,7 +62,7 @@ below the pin stays saved on the creator's PC only, so the creator has no sign a
 - **Every upload is stored as a new pin.** Nothing checks for one already there, so the same pin arriving twice
   (two players marking one copper vein, or `/convertpins`) is stored twice.
 - **Deletes and ticks match on exact name, type and position.** A pin that differs by a rounding error can't be
-  deleted on the server and comes back for everyone on the next join. Renames aren't synced at all.
+  deleted on the server and comes back for everyone on the next join.
 - **Pins and fog share one save file** (`.explored`), which has been wiped to zero bytes once. A bad save takes the
   map with it.
 
@@ -86,12 +92,13 @@ below the pin stays saved on the creator's PC only, so the creator has no sign a
   them.
 - Players with the mod installed are always in. There's no per-player opt-out.
 
-**Anyone can change any pin.** Every player can rename, re-icon, tick or delete any pin, whoever made it. The
+**Anyone can change any pin.** Every player can tick or delete any pin, whoever made it (vanilla has no rename: to
+"rename", delete and re-add). The
 server logs each change with who made it, and a deleted pin goes to a bin for a set time (for example 7 days) so an
 admin can restore it.
 
 **Changes are requests with a receipt.**
-- Add, rename, change icon, tick and delete each go to the server as a request. The server applies it, logs it, and
+- Add, tick and delete each go to the server as a request. The server applies it, logs it, and
   broadcasts the change to everyone online within a second.
 - The client keeps every request it hasn't had a receipt for and resends it, including after a disconnect or on next
   login. A pin can't silently fail to go up.
@@ -101,8 +108,9 @@ admin can restore it.
 **Combining.**
 - When a new pin lands within the combine distance of an existing pin of the **same icon**, it's merged into that
   pin instead of added. Different icons never combine, so a portal next to a copper vein keeps both.
-- The combine distance is a server setting, with a default and optional per-icon overrides (for example tighter for
-  portals, wider for ore).
+- The combine distance is a server setting: **15 m to start**, with optional per-icon overrides later (for example
+  tighter for portals, wider for ore).
+- When pins combine, **the first pin's name is kept.**
 - The same rule runs over the import, and an admin command can re-run it over the whole map.
 
 **Joining and staying in sync.**
@@ -123,19 +131,10 @@ admin can restore it.
   who edits their local copy can't explore further than everyone else.
 - Worked out every frame from what the player is in or on, not on a boarding event. That avoids the
   Expanded_Boat_Minimap bug.
-- Starting values (to tune in play):
-
-| Travelling | Radius |
-|---|---|
-| On foot | 50 m |
-| Raft | 50 m |
-| Karve | 100 m |
-| Longship | 200 m |
-| Drakkar | 300 m |
-
-  Note: vanilla explores 100 m on foot (`Minimap.m_exploreRadius`, the code default; to confirm in game), and
-  BetterMap defaults to 100 m too. 50 m on foot would uncover half the width players get today. Carts, mounts and
-  other vehicle mods get entries later if wanted.
+- **Every value starts at 100 m**, vanilla's on-foot radius (`Minimap.m_exploreRadius`), and is tuned upwards in
+  play. The shipped defaults are an open decision for release. A rough direction from earlier discussion: boats
+  scaling up with size (karve, then longship, then drakkar the widest).
+- Entries: on foot, raft, karve, longship, drakkar. Carts, mounts and other vehicle mods can get entries later.
 
 ## Map display (parity with BetterMap)
 
@@ -150,6 +149,29 @@ Whatever we add must behave like BetterMap does today:
 - **Who decides what gets auto-pinned:** the server, because auto-pins are shared. Each player then chooses what
   they see. (BetterMap lets each player choose what gets pinned, which only works because its pins are private.)
 - Creature, tame and vehicle icons, kept death markers, icon scale and smooth zoom carry over too.
+
+## Player positions
+
+Vanilla's "hide my position" toggle stays, but a server setting, **Force position sharing**, overrides it. It
+defaults to **on**: every player's position shows on everyone's map. Server owners who prefer vanilla behaviour turn
+it off.
+
+## Waypoints
+
+A sailing target that stays in view. Vanilla's map ping (middle click) shows "Quandru: ping" on the map and in the
+world for a few seconds, then it's gone. A waypoint is the same idea but **persistent until someone removes it**.
+
+- **A waypoint pin type.** Placed from the map like a pin (a modifier on middle click, an entry in the pin icon
+  row, or a right-click menu: to settle in design), labelled with who set it, e.g. "Quandru's waypoint".
+- **Shown in the 3D view, not just on the map:** a marker over the spot with its name and distance, which slides to
+  the edge of the screen with an arrow when the spot is behind you or off screen, so you can steer by it.
+- **Local by default; sharing is a server option.** Shared waypoints show for everyone. Anyone can delete one, and
+  people will clear them as they finish with them, since nobody wants a cluttered view.
+- Each player can switch the in-view markers off.
+- **Is it doable?** Yes. Projecting a world position onto the screen and clamping it to the edges is a standard
+  technique, and vanilla already draws ping text at a world position. No existing mod we know of does it.
+- Open details: one waypoint per player (setting a new one replaces your last) or several, and whether a waypoint
+  expires after a long time unused.
 
 ## Vanilla cartography table
 
@@ -175,22 +197,17 @@ Optional, before switching over: each player turns `EnableMarkerShare` on in Ser
 icon, so a portal beside a copper pin would be lost). That gets more pins onto the server early, but step 2 covers
 anyone who doesn't.
 
-**Backup instead of a local copy.** ServerSideMap can't save server pins to your own map: it shows them, but marks
-them "don't save locally". The safe copy is the server's `<world>.mod.serversidemap.explored` file, backed up before
-the switch. The importer reads that file directly.
+**A local copy as well.** ServerSideMap's `/downloadpins` converts the server's pins back into local pins, so a player
+can keep their own copy before the switch (handled separately). Also back up the server's
+`<world>.mod.serversidemap.explored` file before switching: the importer reads it directly.
 
 ## Where I'd like your input
 
 Open, to come back to: **radar and minimap features.** What it shows (creatures, players, boats, carts, your tames,
-which overlaps QuanCompanions D4.5), any range limits, and cosmetic changes (shape, size, zoom, north lock, compass).
+which overlaps QuanCompanions D4.5) and any range limits. Possible look-and-feel options, if any appeal: minimap size
+and zoom, a round or square minimap, north-up versus rotating with you.
 
-1. **Combine distance.** What default? ServerSideMap used 15 m for its duplicate check. Any icons that need their
-   own distance?
-2. **Names when combining.** When a pin is merged into an existing one with a different name, keep the existing
-   name, keep the newer one, or join both ("Copper / big vein")?
-3. **Death markers.** Shared like everything else (useful for corpse runs with friends), or the one exception that
-   stays personal?
-4. **On-foot radius.** 50 m as listed, or keep vanilla's 100 m on foot?
-5. **Auto-pin list.** Start from BetterMap's defaults (valuable ores, dungeons, vegvisirs, traders, portals) or your
-   own list?
-6. **Player positions.** Vanilla lets players hide their position on the map. Keep that choice as it is?
+Also open: **auto-pin list** (what gets pinned automatically), **radius defaults** for release, and the waypoint
+details above.
+
+Everything else in the earlier list has been decided (see the top of this doc).
