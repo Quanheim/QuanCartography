@@ -13,6 +13,6 @@
   "namespace": "Quandru",
   "name": "QuanCartography",
   "community": "valheim",
-  "installLocation": "undefined",
-  "categories": ["undefined"]
+  "installLocation": "both",
+  "categories": ["User Interface", "Quality of Life", "Networking", "Open Source", "Valheim 1.0"]
 }
