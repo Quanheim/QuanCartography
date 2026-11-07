@@ -21,6 +21,8 @@ Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
 - **Players keep vanilla's "hide my position" option**, but a server setting can force positions on, and it
   **defaults to forced on**: everyone's position is shared.
 - **Sailing waypoints:** shared and owned by whoever placed them; everyone sees them all on the map, but the 3D view shows only each player's nearest one (see Waypoints).
+- **The big map gets a scale bar** that follows the zoom and steps 10 m, 20 m, 50 m … 10 km (see Map display,
+  7 Nov 2026).
 - **Radar and minimap features are still open.**
 
 ## Purpose
@@ -149,6 +151,29 @@ Whatever we add must behave like BetterMap does today:
 - **Who decides what gets auto-pinned:** the server, because auto-pins are shared. Each player then chooses what
   they see. (BetterMap lets each player choose what gets pinned, which only works because its pins are private.)
 - Creature, tame and vehicle icons, kept death markers, icon scale and smooth zoom carry over too.
+- **Our own pin types use `Minimap.PinType.None` with a custom icon**, never a vanilla type. Vanilla's `AddPin` turns
+  a hidden type's filter back on, so a mod adding pins under Icon0-4 undoes the player's hiding (found in
+  QuanChunkLoader, 7 Nov 2026). Their show/hide is our own legend rows, as above.
+
+### Scale bar (Quandru, 7 Nov 2026)
+
+A scale bar in the bottom-left of the big map, like a paper map's:
+
+```
+      100 m
+|-------------|
+```
+
+- **It follows the zoom.** Each frame the map is open, work out metres per screen pixel from the map's current zoom,
+  then pick the distance and bar length together.
+- **The distance steps in 1-2-5 jumps:** 10 m, 20 m, 50 m, 100 m, 200 m, 500 m, 1 km, 2 km, 5 km, 10 km. Use the
+  largest step whose bar still fits a set length (about 80 to 200 pixels at 1080p, scaled with the UI). Zooming
+  in or out stretches or shrinks the bar until it leaves that range, then the label jumps to the next step and the
+  bar resets. The bar never gets too small to read or too wide for the corner.
+- **Its look:** end ticks, a thin bar and a label above, in the map's font and colours, readable on every biome
+  (outline or shadow). Nothing to click.
+- The minimap's scale readout (see Minimap) uses the same steps, so both read alike.
+- A personal setting can turn it off.
 
 ## Renaming pins
 
