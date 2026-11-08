@@ -26,6 +26,8 @@ Status: draft, 2 Nov 2026 (road speed and settings added 8 Nov). Nothing built. 
 - **Radar and minimap features are still open.**
 - **Roads make you faster** (Val's suggestion, 8 Nov 2026): a hoe-made path gives a small speed boost and a paved road
   a bigger one, so building roads pays off (see Road speed).
+- **Carts are lighter on paved roads** (8 Nov 2026): a cart's weight is cut by a percentage, 50 % to start, set in the
+  config, on paved roads only, not paths (see Road speed).
 
 ## Purpose
 
@@ -275,11 +277,11 @@ Both figures are server settings, to tune in play (somewhere around 20 to 25 % f
 **Open:** whether mounts (lox, asksvin) get the boost too, and whether the HUD icon shows (it could be a personal
 setting).
 
-### Lighter carts on paved roads (proposed, Quandru, 8 Nov 2026)
+### Lighter carts on paved roads (agreed, Quandru, 8 Nov 2026)
 
 The speed boost alone barely helps a loaded cart: 20 % faster than very slow is still very slow, and a cart of metal
 ore can hardly be pulled up even a gentle slope. So on **paved roads only** (not paths), a cart's weight is cut by
-a percentage (a server setting, to tune in play; about 50 % as a starting point). Building proper roads then makes
+a percentage. **The percentage is a config setting**, 50 % to start, tuned in play. Building proper roads then makes
 hauling ore practical, and paths stay the cheap, small boost.
 
 **How it works** (from Valheim 1.0.21's `Vagon`):
@@ -299,7 +301,7 @@ hauling ore practical, and paths stay the cheap, small boost.
 - Leaving the road brings the full weight back at once, so a cart pushed off the edge of a road on a slope will feel
   it. That's the point of building the road all the way.
 
-**Open:** the percentage; load only or whole cart; whether it needs both wheels on paving or just one.
+**To settle in testing:** load only or whole cart; whether it needs both wheels on paving or just one.
 
 ## Settings
 
@@ -314,7 +316,7 @@ registered with Jotunn's `RegisterCustomConfig`):
   excluded (Gale can only exclude a file that exists in the owner's profile).
 - **`quandru.QuanCartography.Server.cfg`: enforced.** Every setting is admin-only and synced by Jotunn, so the
   server's values win on every client: exploration radius per vehicle, combine distance, the auto-pin list, death
-  markers only with a tombstone, force position sharing, waypoint reach distance and expiry, road speed boosts. It
+  markers only with a tombstone, force position sharing, waypoint reach distance and expiry, road speed boosts, the paved-road cart weight cut. It
   stays in the export, so Gale carries it to everyone as well.
 
 If QuanChat's trial shows a second file doesn't work well with Gale or Jotunn, the fallback is one file with personal
@@ -358,7 +360,8 @@ Open, to come back to when we build:
 - **Radius defaults** for release.
 - **How renames are triggered** from the map.
 - **Road speed:** the final boost figures, whether mounts get it, and the HUD icon (see Road speed).
-- **Lighter carts on paved roads:** the percentage and how it's measured (see Road speed).
+- **Lighter carts on paved roads:** load only or whole cart, and one wheel or both on paving (to settle in testing;
+  see Road speed).
 - **Settings:** which are personal and which the server enforces, and whether to use two files (waits on QuanChat's
   test build; see Settings).
 
