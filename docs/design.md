@@ -26,8 +26,8 @@ Status: draft, 2 Nov 2026 (road speed and settings added 8 Nov). Nothing built. 
 - **Radar and minimap features are still open.**
 - **Roads make you faster** (Val's suggestion, 8 Nov 2026): a hoe-made path gives a small speed boost and a paved road
   a bigger one, so building roads pays off (see Road speed).
-- **Carts are lighter on paved roads** (8 Nov 2026): a cart's weight is cut by a percentage, 50 % to start, set in the
-  config, on paved roads only, not paths (see Road speed).
+- **Carts are lighter on paved roads** (8 Nov 2026): a cart's weight is cut by a percentage, set in the config (default 50 %),
+  on paved roads only, not paths (see Road speed).
 
 ## Purpose
 
@@ -281,7 +281,7 @@ setting).
 
 The speed boost alone barely helps a loaded cart: 20 % faster than very slow is still very slow, and a cart of metal
 ore can hardly be pulled up even a gentle slope. So on **paved roads only** (not paths), a cart's weight is cut by
-a percentage. **The percentage is a config setting**, 50 % to start, tuned in play. Building proper roads then makes
+a percentage. **The percentage is a config setting, default 50 %**, tuned from there in testing. Building proper roads then makes
 hauling ore practical, and paths stay the cheap, small boost.
 
 **How it works** (from Valheim 1.0.21's `Vagon`):
