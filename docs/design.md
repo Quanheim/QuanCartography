@@ -26,8 +26,6 @@ Status: draft, 2 Nov 2026 (road speed and settings added 8 Nov). Nothing built. 
 - **Radar and minimap features are still open.**
 - **Roads make you faster** (Val's suggestion, 8 Nov 2026): a hoe-made path gives a small speed boost and a paved road
   a bigger one, so building roads pays off (see Road speed).
-- **Two config files**, one personal and one enforced by the server, so Gale can sync the server's rules without
-  overwriting each player's own choices (see Settings).
 
 ## Purpose
 
@@ -272,14 +270,43 @@ Both figures are server settings, to tune in play (somewhere around 20 to 25 % f
   it working.
 - Pulling a cart is on foot, so a road helps there too.
 - **Not just player roads:** some generated locations (fuling villages, for example) paint dirt or paved ground, and
-  those count as roads too. That seems harmless.
+  those count as roads too. Harmless (agreed, Quandru, 8 Nov 2026).
 
 **Open:** whether mounts (lox, asksvin) get the boost too, and whether the HUD icon shows (it could be a personal
 setting).
 
+### Lighter carts on paved roads (proposed, Quandru, 8 Nov 2026)
+
+The speed boost alone barely helps a loaded cart: 20 % faster than very slow is still very slow, and a cart of metal
+ore can hardly be pulled up even a gentle slope. So on **paved roads only** (not paths), a cart's weight is cut by
+a percentage (a server setting, to tune in play; about 50 % as a starting point). Building proper roads then makes
+hauling ore practical, and paths stay the cheap, small boost.
+
+**How it works** (from Valheim 1.0.21's `Vagon`):
+- A cart's physics weight is `m_baseMass` (20) plus the weight of everything in it (`Container` total weight ×
+  `m_itemWeightMassFactor`, 1). `Vagon.UpdateMass` works this out every 5 seconds and spreads it over the cart's
+  rigidbodies (`Vagon.SetMass`). That weight is what makes it drag behind you and roll back down hills: the pull
+  needed on a slope rises with it.
+- **The puller's client runs the cart.** Using a cart asks for ownership (`Vagon.RPC_RequestOwn`), and only the owner
+  runs `UpdateMass` and the physics. So the check runs on the client of whoever is pulling, as for the player's own
+  speed boost, and nothing needs to go through the server.
+- We read the paint under the cart itself (its wheels), not under the player, a few times a second, and scale the
+  weight while it's on paved road. Vanilla only recalculates every 5 seconds, so we set the weight ourselves when
+  the cart rolls on or off a road, rather than waiting up to 5 seconds.
+- The cut applies to the load only, or to the whole weight including the empty cart: to decide in testing.
+- It only changes how the cart handles. The items' weight, the cart's inventory and the player's carry weight are
+  untouched.
+- Leaving the road brings the full weight back at once, so a cart pushed off the edge of a road on a slope will feel
+  it. That's the point of building the road all the way.
+
+**Open:** the percentage; load only or whole cart; whether it needs both wheels on paving or just one.
+
 ## Settings
 
-**Two config files**, as QuanChat is trying out (test build 1.0.99, branch `test/server-config`: a second file
+**Open: who sets what.** Which settings are personal and which the server enforces is still to be discussed. Until
+then, the proposal below waits on QuanChat's test build: don't progress it before that test has run.
+
+**Proposed: two config files**, as QuanChat is trying out (test build 1.0.99, branch `test/server-config`: a second file
 registered with Jotunn's `RegisterCustomConfig`):
 - **`quandru.QuanCartography.cfg`: personal.** What each player chooses for themselves: scale bar on or off,
   3D waypoint markers on or off, minimap look, the road HUD icon. Excluded from the Gale master profile's export, so a
@@ -331,5 +358,8 @@ Open, to come back to when we build:
 - **Radius defaults** for release.
 - **How renames are triggered** from the map.
 - **Road speed:** the final boost figures, whether mounts get it, and the HUD icon (see Road speed).
+- **Lighter carts on paved roads:** the percentage and how it's measured (see Road speed).
+- **Settings:** which are personal and which the server enforces, and whether to use two files (waits on QuanChat's
+  test build; see Settings).
 
 Everything else in the earlier list has been decided (see the top of this doc).
