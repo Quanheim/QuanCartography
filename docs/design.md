@@ -14,6 +14,9 @@ Status: draft, 2 Nov 2026 (road speed and settings added 8 Nov). Nothing built. 
 - **The vanilla cartography table is ignored.** It still works for anyone who uses it, but we don't hook into it or
   rely on it. Everything goes through the server.
 - **Combining starts at 15 m** (ServerSideMap's figure), and the **first pin's name wins**. Both are tunable.
+- **No credit needed (Quandru, 8 Nov 2026)** to BetterMap, Expanded_Boat_Minimap or ServerSideMap: we replace them
+  with our own code and take nothing from them. Reading ServerSideMap's source to diagnose its pin bugs, and
+  importing its `.explored` file, don't change that. Revisit if we ever reuse code, assets or a distinctive design.
 - **Pins can be renamed**, which vanilla can't do (see Renaming pins).
 - **Death markers are shared**, so others can help with corpse runs, and are **tied to the tombstone** (see Death
   markers).
