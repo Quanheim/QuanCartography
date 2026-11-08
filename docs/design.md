@@ -292,16 +292,16 @@ hauling ore practical, and paths stay the cheap, small boost.
 - **The puller's client runs the cart.** Using a cart asks for ownership (`Vagon.RPC_RequestOwn`), and only the owner
   runs `UpdateMass` and the physics. So the check runs on the client of whoever is pulling, as for the player's own
   speed boost, and nothing needs to go through the server.
-- We read the paint under the cart itself (its wheels), not under the player, a few times a second, and scale the
+- We read the paint under **both wheels**, not under the player, a few times a second. **Both must be on paving**
+  (Quandru, 8 Nov 2026), so a road has to be properly wide to count. While they are, we scale the
   weight while it's on paved road. Vanilla only recalculates every 5 seconds, so we set the weight ourselves when
   the cart rolls on or off a road, rather than waiting up to 5 seconds.
-- The cut applies to the load only, or to the whole weight including the empty cart: to decide in testing.
+- The cut applies to the **whole weight**, empty cart included: one multiply on the total vanilla already works out,
+  the simplest to build. The empty cart's 20 makes no real difference (Quandru, 8 Nov 2026).
 - It only changes how the cart handles. The items' weight, the cart's inventory and the player's carry weight are
   untouched.
 - Leaving the road brings the full weight back at once, so a cart pushed off the edge of a road on a slope will feel
   it. That's the point of building the road all the way.
-
-**To settle in testing:** load only or whole cart; whether it needs both wheels on paving or just one.
 
 ## Settings
 
@@ -360,8 +360,6 @@ Open, to come back to when we build:
 - **Radius defaults** for release.
 - **How renames are triggered** from the map.
 - **Road speed:** the final boost figures, whether mounts get it, and the HUD icon (see Road speed).
-- **Lighter carts on paved roads:** load only or whole cart, and one wheel or both on paving (to settle in testing;
-  see Road speed).
 - **Settings:** which are personal and which the server enforces, and whether to use two files (waits on QuanChat's
   test build; see Settings).
 
