@@ -1,6 +1,6 @@
 # QuanCartography: design (brief, draft)
 
-Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
+Status: draft, 2 Nov 2026 (road speed and settings added 8 Nov). Nothing built. Valheim 1.0.21.
 
 **Decided (2 Nov 2026):**
 - **Every pin is shared and owned by the server.** There are no private pins: everybody's pins sync to everybody.
@@ -24,6 +24,10 @@ Status: draft, 2 Nov 2026. Nothing built. Valheim 1.0.21.
 - **The big map gets a scale bar** that follows the zoom and steps 10 m, 20 m, 50 m … 10 km (see Map display,
   7 Nov 2026).
 - **Radar and minimap features are still open.**
+- **Roads make you faster** (Val's suggestion, 8 Nov 2026): a hoe-made path gives a small speed boost and a paved road
+  a bigger one, so building roads pays off (see Road speed).
+- **Two config files**, one personal and one enforced by the server, so Gale can sync the server's rules without
+  overwriting each player's own choices (see Settings).
 
 ## Purpose
 
@@ -240,6 +244,55 @@ world for a few seconds, then it's gone. A waypoint is the same idea but **persi
 - **Is it doable?** Yes. Projecting a world position onto the screen and clamping it to the edges is a standard
   technique, and vanilla already draws ping text at a world position. No existing mod we know of does it.
 
+## Road speed
+
+Val's suggestion (8 Nov 2026), seen in other mods: moving on a road is faster, so building paths and roads around
+the area pays off. The road types are just the two terrain paints players already make:
+
+| Ground | Made with | Speed boost (to start) |
+|---|---|---|
+| **Path** | Hoe, "Pathen" (dirt paint) | +10 % |
+| **Paved road** | Hoe, "Paved road" | +20 % |
+| Anything else (grass, cultivated soil, natural ground) | | none |
+
+Both figures are server settings, to tune in play (somewhere around 20 to 25 % for paved).
+
+**How it works** (from Valheim 1.0.21's decompile):
+- The game stores terrain paint in each terrain patch's paint mask, one colour per paint (`Heightmap.m_paintMaskDirt`
+  red, `m_paintMaskPaved` blue, `m_paintMaskCultivated` green, `m_paintMaskDeepSnow` white). `Heightmap.GetPaintMask`
+  reads the colour at a world position.
+- A few times a second, the local player's client reads the paint under their feet: mostly red is a path, mostly blue
+  is paved. Natural ground never paints red or blue (world generation only uses green and alpha), so only roads count.
+  White (deep snow) is red and blue at once, so it must be excluded.
+- The boost only applies on foot and on the ground: not swimming, jumping, sitting or riding. A short grace time (about
+  half a second) stops it flickering at a road's ragged edges.
+- The boost is a status effect whose speed modifier (`SE_Stats.m_speedModifier`) adds a percentage of base speed.
+  The game applies those to walking, jogging and running alike (`SEMan.ModifySpeed`), and they stack with other speed
+  effects the same way vanilla's do. A status effect can also show a small "Road" icon on the HUD, so players can see
+  it working.
+- Pulling a cart is on foot, so a road helps there too.
+- **Not just player roads:** some generated locations (fuling villages, for example) paint dirt or paved ground, and
+  those count as roads too. That seems harmless.
+
+**Open:** whether mounts (lox, asksvin) get the boost too, and whether the HUD icon shows (it could be a personal
+setting).
+
+## Settings
+
+**Two config files**, as QuanChat is trying out (test build 1.0.99, branch `test/server-config`: a second file
+registered with Jotunn's `RegisterCustomConfig`):
+- **`quandru.QuanCartography.cfg`: personal.** What each player chooses for themselves: scale bar on or off,
+  3D waypoint markers on or off, minimap look, the road HUD icon. Excluded from the Gale master profile's export, so a
+  pull never overwrites anyone's choices. Per the template convention the server still writes this file, so it can be
+  excluded (Gale can only exclude a file that exists in the owner's profile).
+- **`quandru.QuanCartography.Server.cfg`: enforced.** Every setting is admin-only and synced by Jotunn, so the
+  server's values win on every client: exploration radius per vehicle, combine distance, the auto-pin list, death
+  markers only with a tombstone, force position sharing, waypoint reach distance and expiry, road speed boosts. It
+  stays in the export, so Gale carries it to everyone as well.
+
+If QuanChat's trial shows a second file doesn't work well with Gale or Jotunn, the fallback is one file with personal
+and enforced sections, as the template describes.
+
 ## Vanilla cartography table
 
 Ignored, as most map mods do. Anyone can still use it, but QuanCartography doesn't hook into it or depend on it.
@@ -277,5 +330,6 @@ Open, to come back to when we build:
 - **Auto-pin list:** what gets pinned automatically.
 - **Radius defaults** for release.
 - **How renames are triggered** from the map.
+- **Road speed:** the final boost figures, whether mounts get it, and the HUD icon (see Road speed).
 
 Everything else in the earlier list has been decided (see the top of this doc).
