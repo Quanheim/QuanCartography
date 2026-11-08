@@ -294,7 +294,7 @@ hauling ore practical, and paths stay the cheap, small boost.
   speed boost, and nothing needs to go through the server.
 - We read the paint under **both wheels**, not under the player, a few times a second. **Both must be on paving**
   (Quandru, 8 Nov 2026), so a road has to be properly wide to count. While they are, we scale the
-  weight while it's on paved road. Vanilla only recalculates every 5 seconds, so we set the weight ourselves when
+  weight. Vanilla only recalculates every 5 seconds, so we set the weight ourselves when
   the cart rolls on or off a road, rather than waiting up to 5 seconds.
 - The cut applies to the **whole weight**, empty cart included: one multiply on the total vanilla already works out,
   the simplest to build. The empty cart's 20 makes no real difference (Quandru, 8 Nov 2026).
